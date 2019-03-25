@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { graphql, Query } from "react-apollo";
+import { graphql, ApolloConsumer } from "react-apollo";
 import gql from "graphql-tag";
 
 export const query = gql`
@@ -12,10 +12,18 @@ export const query = gql`
 `;
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      people: []
+    };
+  }
+
   render() {
     return (
-      <Query query={query}>
-        {({ loading, error, data: { people } }) => (
+      <ApolloConsumer>
+        {(client) => (
           <main>
             <header>
               <h1>Apollo Client Error Template</h1>
@@ -33,17 +41,22 @@ class App extends Component {
                 Currently the schema just serves a list of people with names and
                 ids.
               </p>
+              <button onClick={(event) => {
+                client.query({
+                  query
+                }).then(response => {
+                  this.setState({ people: response.data.people });
+                });
+
+                event.preventDefault();
+              }}>Fetch People</button>
             </header>
-            {loading ? (
-              <p>Loading…</p>
-            ) : (
-              <ul>
-                {people.map(person => <li key={person.id}>{person.name}</li>)}
-              </ul>
-            )}
+            <ul>
+              {this.state.people.map(person => <li key={person.id}>{person.name}</li>)}
+            </ul>
           </main>
         )}
-      </Query>
+      </ApolloConsumer>
     );
   }
 }
